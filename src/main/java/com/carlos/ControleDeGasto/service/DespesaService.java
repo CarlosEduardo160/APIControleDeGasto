@@ -7,6 +7,7 @@ import com.carlos.ControleDeGasto.repository.IDespesaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -53,8 +54,6 @@ public class DespesaService {
                 .build();
     }
 
-
-
     public Optional<Despesa> atualizarDespesa(Long id, DespesaCreateDto novosDados){
         return despesaRepository.findById(id)
                 .map(despesaExistente -> {
@@ -72,5 +71,31 @@ public class DespesaService {
         }
         despesaRepository.deleteById(id);
         return true;
+    }
+
+    public List<DespesaResponseDto> listarDespesaPorDia(LocalDate diaDespesa){
+        return despesaRepository.findDespesaByDataDespesa(diaDespesa)
+                .stream()
+                .map(despesa -> DespesaResponseDto.builder()
+                        .id(despesa.getId())
+                        .dataDespesa(despesa.getDataDespesa())
+                        .titulo(despesa.getTitulo())
+                        .valor(despesa.getValor())
+                        .descricao(despesa.getDescricao())
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+    public List<DespesaResponseDto> listarDespesaPorMes(LocalDate dataInicio, LocalDate dataFim){
+        return despesaRepository.findByDataDespesaBetween(dataInicio, dataFim)
+                .stream()
+                .map(despesa -> DespesaResponseDto.builder()
+                        .id(despesa.getId())
+                        .dataDespesa(despesa.getDataDespesa())
+                        .titulo(despesa.getTitulo())
+                        .valor(despesa.getValor())
+                        .descricao(despesa.getDescricao())
+                        .build())
+                .collect(Collectors.toList());
     }
 }

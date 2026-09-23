@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -45,12 +46,24 @@ public class DespesaController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Despesa> excluirDespesa(@PathVariable Long id){
+    public ResponseEntity<Void> excluirDespesa(@PathVariable Long id){
         boolean removido = despesaService.excluirDespesa(id);
 
         if(!removido){
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/dia")
+    @ResponseStatus(HttpStatus.OK)
+    public List<DespesaResponseDto> listarDespesaPorDia(@RequestParam LocalDate data){
+        return despesaService.listarDespesaPorDia(data);
+    }
+
+    @GetMapping("/periodo")
+    @ResponseStatus(HttpStatus.OK)
+    public List<DespesaResponseDto> listarDespesaPorMes(@RequestParam LocalDate inicio, LocalDate fim){
+        return despesaService.listarDespesaPorMes(inicio, fim);
     }
 }
