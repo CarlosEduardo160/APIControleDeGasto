@@ -1,6 +1,8 @@
 package com.carlos.ControleDeGasto.controller;
 
 import com.carlos.ControleDeGasto.domain.Despesa;
+import com.carlos.ControleDeGasto.dto.DespesaCreateDto;
+import com.carlos.ControleDeGasto.dto.DespesaResponseDto;
 import com.carlos.ControleDeGasto.service.DespesaService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -19,35 +21,36 @@ public class DespesaController {
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public List<Despesa> listarDespesas(){
+    public List<DespesaResponseDto> listarDespesas(){
         return despesaService.listarDespesas();
     }
 
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public Despesa listarDespesaId(@PathVariable Long id){
+    public DespesaResponseDto listarDespesaId(@PathVariable Long id){
         return despesaService.buscarDespesaId(id);
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<Despesa> registrarDespesa(@Valid @RequestBody Despesa despesa){
-        despesaService.registrarDespesa(despesa);
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+    public void registrarDespesa(@Valid @RequestBody DespesaCreateDto despesaCreateDto){
+        despesaService.registrarDespesa(despesaCreateDto);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Despesa> alterarDespesa(@PathVariable Long id, @RequestBody Despesa despesaAtualizada){
-        Despesa atualizada = despesaService.atualizarDespesa(id, despesaAtualizada);
-        if(atualizada == null){
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(atualizada);
+    public ResponseEntity<Despesa> alterarDespesa(@PathVariable Long id, @RequestBody DespesaCreateDto novosDados){
+        return despesaService.atualizarDespesa(id, novosDados)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void excluirDespesa(@PathVariable Long id){
-        despesaService.excluirDespesa(id);
+    public ResponseEntity<Despesa> excluirDespesa(@PathVariable Long id){
+        boolean removido = despesaService.excluirDespesa(id);
+
+        if(!removido){
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.noContent().build();
     }
 }

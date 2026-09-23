@@ -1,41 +1,76 @@
 package com.carlos.ControleDeGasto.service;
 
 import com.carlos.ControleDeGasto.domain.Despesa;
-import com.carlos.ControleDeGasto.repository.DespesaRepository;
+import com.carlos.ControleDeGasto.dto.DespesaCreateDto;
+import com.carlos.ControleDeGasto.dto.DespesaResponseDto;
+import com.carlos.ControleDeGasto.repository.IDespesaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class DespesaService {
 
-    private final DespesaRepository despesaRepository;
+    private final IDespesaRepository despesaRepository;
 
-    public Despesa registrarDespesa(Despesa despesa){
-        despesaRepository.registrarDespesa(despesa);
-        return despesa;
+    public void registrarDespesa(DespesaCreateDto despesaCreateDto){
+        Despesa despesa = Despesa.builder()
+                .dataDespesa(despesaCreateDto.getDataDespesa())
+                .titulo(despesaCreateDto.getTitulo())
+                .valor(despesaCreateDto.getValor())
+                .descricao(despesaCreateDto.getDescricao())
+                .build();
+        despesaRepository.save(despesa);
     }
 
-    public List<Despesa> listarDespesas(){
-        return despesaRepository.listarDespesas();
+    public List<DespesaResponseDto> listarDespesas(){
+        return despesaRepository.findAll()
+                .stream()
+                .map(despesa -> DespesaResponseDto.builder()
+                        .id(despesa.getId())
+                        .dataDespesa(despesa.getDataDespesa())
+                        .titulo(despesa.getTitulo())
+                        .valor(despesa.getValor())
+                        .descricao(despesa.getDescricao())
+                        .build())
+                .collect(Collectors.toList());
     }
 
-    public Despesa buscarDespesaId(Long id){
-        Despesa despesaEncontrada = despesaRepository.buscarDespesaId(id);
+    public DespesaResponseDto buscarDespesaId(Long id){
+        Despesa despesa = despesaRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Despesa não encontrada"));
 
-        if(despesaEncontrada == null){
-            return null;
+        return DespesaResponseDto.builder()
+                .id(despesa.getId())
+                .dataDespesa(despesa.getDataDespesa())
+                .titulo(despesa.getTitulo())
+                .valor(despesa.getValor())
+                .descricao(despesa.getDescricao())
+                .build();
+    }
+
+
+
+    public Optional<Despesa> atualizarDespesa(Long id, DespesaCreateDto novosDados){
+        return despesaRepository.findById(id)
+                .map(despesaExistente -> {
+                    despesaExistente.setDataDespesa(novosDados.getDataDespesa());
+                    despesaExistente.setTitulo(novosDados.getTitulo());
+                    despesaExistente.setValor(novosDados.getValor());
+                    despesaExistente.setDescricao(novosDados.getDescricao());
+                    return despesaRepository.save(despesaExistente);
+                });
+    }
+
+    public boolean excluirDespesa(Long id){
+        if(!despesaRepository.existsById(id)){
+            return false;
         }
-        return despesaEncontrada;
-    }
-
-    public Despesa atualizarDespesa(Long id, Despesa despesaAtualizada){
-        return despesaRepository.atualizarDespesa(id, despesaAtualizada);
-    }
-
-    public void excluirDespesa(Long id){
-        despesaRepository.excluirDespesa(id);
+        despesaRepository.deleteById(id);
+        return true;
     }
 }

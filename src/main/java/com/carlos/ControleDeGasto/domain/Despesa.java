@@ -1,33 +1,34 @@
 package com.carlos.ControleDeGasto.domain;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import jakarta.validation.constraints.NotBlank;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import org.antlr.v4.runtime.misc.NotNull;
+import jakarta.persistence.*;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
+@Entity
+@Table(name = "tb_despesas")
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@JsonInclude(JsonInclude.Include.NON_NULL)
+@Builder
 public class Despesa {
+
+    @Id
+    @Column(name = "id_despesa")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotNull
     @JsonFormat(pattern = "dd/MM/yyyy")
+    @Column(name = "data_despesa", nullable = false)
     private LocalDate dataDespesa;
 
-    @NotBlank
+    @Column(nullable = false)
     private String titulo;
 
-    @NotNull
+    @Column(nullable = false)
     private BigDecimal valor;
 
     private String descricao;
