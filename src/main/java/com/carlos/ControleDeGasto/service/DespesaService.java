@@ -3,11 +3,13 @@ package com.carlos.ControleDeGasto.service;
 import com.carlos.ControleDeGasto.domain.Despesa;
 import com.carlos.ControleDeGasto.dto.DespesaCreateDto;
 import com.carlos.ControleDeGasto.dto.DespesaResponseDto;
+import com.carlos.ControleDeGasto.exception.DadoInvalidoException;
 import com.carlos.ControleDeGasto.exception.NaoEncontradoException;
 import com.carlos.ControleDeGasto.repository.IDespesaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -19,6 +21,10 @@ public class DespesaService {
     private final IDespesaRepository despesaRepository;
 
     public void registrarDespesa(DespesaCreateDto despesaCreateDto){
+        if(despesaCreateDto.getValor().compareTo(BigDecimal.ZERO) < 0){
+            throw new DadoInvalidoException("O valor da despesa não pode ser negativo.");
+        }
+
         Despesa despesa = Despesa.builder()
                 .dataDespesa(despesaCreateDto.getDataDespesa())
                 .titulo(despesaCreateDto.getTitulo())
@@ -74,13 +80,8 @@ public class DespesaService {
     }
 
     public List<DespesaResponseDto> listarDespesaPorDia(LocalDate diaDespesa){
-        List<Despesa> despesas = despesaRepository.findDespesaByDataDespesa(diaDespesa);
-
-        if(despesas.isEmpty()){
-            throw new NaoEncontradoException("Nenhuma despesa registrada neste dia.");
-        }
-
-        return despesas.stream()
+        return despesaRepository.findDespesaByDataDespesa(diaDespesa)
+                .stream()
                 .map(despesa -> DespesaResponseDto.builder()
                         .id(despesa.getId())
                         .dataDespesa(despesa.getDataDespesa())
@@ -92,13 +93,12 @@ public class DespesaService {
     }
 
     public List<DespesaResponseDto> listarDespesaPorPeriodo(LocalDate dataInicio, LocalDate dataFim){
-        List<Despesa> despesas = despesaRepository.findByDataDespesaBetween(dataInicio, dataFim);
-
-        if(despesas.isEmpty()){
-            throw new NaoEncontradoException("Nenhuma despesa encontrada neste intervalo.");
+        if(dataInicio.isAfter(dataFim)){
+            throw new DadoInvalidoException("A data inicial não pode ultrapassar a data final");
         }
 
-        return despesas.stream()
+        return despesaRepository.findByDataDespesaBetween(dataInicio, dataFim)
+                .stream()
                 .map(despesa -> DespesaResponseDto.builder()
                         .id(despesa.getId())
                         .dataDespesa(despesa.getDataDespesa())

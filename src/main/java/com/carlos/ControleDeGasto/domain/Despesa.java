@@ -1,6 +1,5 @@
 package com.carlos.ControleDeGasto.domain;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.*;
 

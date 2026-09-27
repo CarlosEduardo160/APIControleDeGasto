@@ -1,9 +1,11 @@
 package com.carlos.ControleDeGasto.handler;
 
+import com.carlos.ControleDeGasto.exception.DadoInvalidoException;
 import com.carlos.ControleDeGasto.exception.ErrorResponse;
 import com.carlos.ControleDeGasto.exception.NaoEncontradoException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -22,6 +24,16 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
 
+    //Lança uma exceção caso tente criar uma despesa com valor negativo ou coloque uma data inicial superior a data final na listagem por período
+    @ExceptionHandler(DadoInvalidoException.class)
+    public ResponseEntity<ErrorResponse> handleDadoInvalidoException(DadoInvalidoException ex){
+        ErrorResponse response = ErrorResponse.builder()
+                .mensagem(ex.getMessage())
+                .status(HttpStatus.BAD_REQUEST.value())
+                .build();
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
     //Lança uma exceção nos métodos que precisam ser validados com @Valid no controller
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex){
@@ -37,6 +49,16 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleMethodArgumentTypeMismatchException(MethodArgumentTypeMismatchException ex){
         ErrorResponse response = ErrorResponse.builder()
                 .mensagem("O dado enviado pelo parâmetro esta incorreto.")
+                .status(HttpStatus.BAD_REQUEST.value())
+                .build();
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    //Lança uma exceção caso o corpo do JSON não esteja coerente com a estrutura da entidade
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ErrorResponse> HttpMessageNotReadableException(Exception ex){
+        ErrorResponse response = ErrorResponse.builder()
+                .mensagem("O JSON enviado está mal estruturado, por favor verifique as informações e tente novamente.")
                 .status(HttpStatus.BAD_REQUEST.value())
                 .build();
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
