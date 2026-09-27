@@ -81,7 +81,7 @@ A descrição é um campo opcional então não tem problema não adicionar nada,
 
 ## Sistema 
 
-O sistema foi feito em arquitetura MVC, então temos a seguinte estrutura:
+O sistema segue uma arquitetura em camadas (Controller -> Service -> Repository), com DTOs fazendo a comunicação entre elas.
 
 ### Controller
 
