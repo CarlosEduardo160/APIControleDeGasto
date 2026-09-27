@@ -13,7 +13,7 @@ O código foi desenvolvido utilizando:
 - PostgreSQL 
 - Spring Boot
 
-Esta é meu primeiro contato com o framework Spring e criação de APIs, feedbacks, críticas e recomendações são muito bem vindos.
+Esta é meu primeiro contato com o framework Spring e criação de APIs. Feedbacks, críticas e recomendações são muito bem vindos.
 
 ## Índice
 - [API](#api)
@@ -22,6 +22,16 @@ Esta é meu primeiro contato com o framework Spring e criação de APIs, feedbac
 ---
 
 ## API
+
+O arquivo "application.properties" possui a linha responsável pela URL do seu banco de dados e inserção de user e senha. Assim como a linha para criação automática das tabelas (desde que a conexão esteja estabelecida). 
+
+No mesmo arquivo, configure as variáveis de ambiente DATABASE_USERNAME e DATABASE_PASSWORD com as credenciais do seu PostgreSQL local. Caso não saiba como, apenas apague:
+```
+${DATABASE_USERNAME} e ${DATABASE_PASSWORD}
+```
+E coloque seu user e senha no lugar.
+
+Caso deseje testar o código, por favor, verifique a conexão com o banco. 
 
 Para testar essa API utilize o Postman, clone o repositório e inicie o código, ele ira rodar pelo seguinte endereço:
 ```
