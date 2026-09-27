@@ -17,6 +17,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 public class DespesaCreateDto {
     @JsonFormat(pattern = "dd/MM/yyyy")
+    @NotNull
     private LocalDate dataDespesa;
     @NotBlank
     private String titulo;

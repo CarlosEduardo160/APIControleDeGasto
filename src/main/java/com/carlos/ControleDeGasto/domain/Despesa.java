@@ -21,7 +21,6 @@ public class Despesa {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @JsonFormat(pattern = "dd/MM/yyyy")
     @Column(name = "data_despesa", nullable = false)
     private LocalDate dataDespesa;
 
