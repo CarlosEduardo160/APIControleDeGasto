@@ -1,0 +1,179 @@
+# API Controle Financeiro 
+
+---
+
+[![Java](https://img.shields.io/badge/Java-%23ED8B00.svg?logo=openjdk&logoColor=white)](#)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-6DB33F?logo=springboot&logoColor=fff)](#)
+[![Postgres](https://img.shields.io/badge/Postgres-%23316192.svg?logo=postgresql&logoColor=white)](#)
+
+Desenvolvi uma API REST simples de controle financeiro que te permite registrar uma despesa com Data, Titulo, Valor e opcionalmente uma descrição.
+
+O código foi desenvolvido utilizando:
+- Java 25 
+- PostgreSQL 
+- Spring Boot
+
+Esta é meu primeiro contato com o framework Spring e criação de APIs, feedbacks, críticas e recomendações são muito bem vindos.
+
+## Índice
+- [API](#api)
+- [Sistema](#sistema)
+
+---
+
+## API
+
+Para testar essa API utilize o Postman, clone o repositório e inicie o código, ele ira rodar pelo seguinte endereço:
+```
+localhost:8080
+```
+
+### Endpoints
+
+A API possui os seguintes endpoints:
+
+```
+GET /despesas  -> Busca todas as despesas que estiverem no banco
+
+GET /despesas/{id}  -> Busca uma despesas especifica pelo ID
+
+POST /despesas  -> Registra uma nova despesa no banco
+
+DELETE /despesas/{id}  -> Deleta uma despesa do banco pelo ID
+
+PUT /despesas/{id}  -> Atualiza uma despesa (verbo PUT, então é preciso repassar todo o valor no JSON)
+
+GET /despesas/dia?data=dd/MM/aaaa  -> Busca uma despesa no banco por uma data específica 
+
+GET /despesas/periodo?inicio=dd/MM/aaaa&fim=dd/MM/aaaa  -> Busca despesas no banco dentro de um período específico 
+```
+
+Uma requisição no Postman devera ser assim:
+
+```
+{verbo http} localhost:8080/despesas
+```
+
+Para registrar uma despesa, siga o seguinte modelo JSON:
+
+```
+    {
+        "dataDespesa": "27/09/2026",
+        "titulo": "Café da manhã",
+        "valor": 12.00,
+        "descricao": "Cafézinho de lanchonete"
+    }
+```
+
+A descrição é um campo opcional então não tem problema não adicionar nada, mas será preciso remover ela do corpo.
+
+---
+
+## Sistema 
+
+O sistema foi feito em arquitetura MVC, então temos a seguinte estrutura:
+
+### Controller
+
+O Controller é a parte do código que recebe as requisições HTTP, cada método está marcado com seu respectivo verbo, então  por exemplo:
+
+```
+@GetMapping
+    @ResponseStatus(HttpStatus.OK)
+    public List<DespesaResponseDto> listarDespesas()
+```
+
+É um verbo GET, ou seja, responsável apenas pela busca de algum dado. 
+
+Isso é importante porque o que deve definir a ação do código é o verbo HTTP. Por exemplo, um método de listagem não deve conter o endpoint **/listar**, é o verbo que define o que ira acontecer.
+
+Tenha em mente que:
+
+```
+ @GetMapping("/dia")
+    @ResponseStatus(HttpStatus.OK)
+    public List<DespesaResponseDto> listarDespesaPorDia(@RequestParam LocalDate data)
+```
+
+Nesse caso é necessário uma rota específica, porque se trata de um filtro, assim como:
+
+```
+@GetMapping("/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    public DespesaResponseDto listarDespesaId(@PathVariable Long id)
+```
+
+É apenas um parâmetro que precisa ser seguido, e não uma rota diferente.
+
+### Domain 
+
+No domain temos nossa "entidade original", é nela que estão os atributos a serem seguidos, assim como as suas anotações para persistência de dados.
+
+### DTO
+
+No pacote DTO temos as classes "DespesaCreateDto" e "DespesaResponseDto", são classes importantíssimas para transportar dados entres as diferentes camadas do sistema, e seguem o modelo da "entidade original".
+
+O **DespesaCreateDto** é responsável pela criação do objeto, quando fazemos um POST é ele que recebe os dados e transforma em um objeto Despesa.
+
+Possui anotações como:
+* @JsonFormat(pattern = "dd/MM/yyyy") - para indicar a forma que a data deve ser inserida no JSON.
+* NotNull/NotBlank - serve como uma segunda camada de proteção, caso algum dado esteja vazio, ele quebra e da erro antes de percorrer todo o caminho até o banco de dados.
+
+Já o **DespesaResponseDto** é importantíssimo, pois é ele que define que dados iremos exibir para o usuário. No caso desse código, não teria problema retornar diretamente a entidade, porquê não temos nenhum dado sensível.
+
+Mas no caso de sistemas que possuem dados como: email e senha, se não tiver um response para ocultar essas informações teríamos um problema gravíssimo de segurança.
+
+O DespesaResponse possui as anotações:
+* @JsonInclude(JsonInclude.Include.NON_NULL) - Para não exibir o campo "descrição" no corpo do JSON caso o campo esteja vazio, já que descrição não é um campo obrigatório.
+* @JsonFormat(pattern = "dd/MM/yyyy") - Apenas para exibir a data no mesmo formato da inserção.
+
+### Exception e ExceptionHandler
+
+No pacote "exception" temos 2 exceções personalizadas e um ErrorResponse que funciona basicamente como um ResponseDto. Quando ocorre um erro no sistema, o JSON retorna um erro extremamente verboso e ilegível para iniciantes ou pessoas de fora da área, então o trabalho do ErrorResponse é tornar essa mensagem "amigável". 
+
+
+Já no pacote "handler" temos o **GlobalExceptionHandler** que é o responsável por lidar com essa "transformação" da mensagem de erro. 
+
+Tentei mapear o maior numero de erros possíveis, e deixei anotado em cima de cada método em qual ocasião aquela exceção seria lançada. Recomendo uma rápida checagem, pois se eu tentasse explicar cada um aqui essa seção se estenderia demais (Na seção "Service" explicarei brevemente a decisão sobre as 2 exceções personalizadas do sistema).
+
+### Repository
+
+Aqui temos uma interface IDespesaRepository que estende "JpaRepository", usando da especificação JPA e do Hibernate para aplicar a persistência de dados. Isso nos livra de ter que ficar escrevendo comando SQL manual, a interface já possui métodos prontos e semânticos para cada operação.
+
+Ainda assim, temos o uso de "Query Methods" para fazer buscas "personalizadas", nesse código temos:
+
+```
+ List<Despesa> findDespesaByDataDespesa(LocalDate dataDespesa);
+
+ List<Despesa> findByDataDespesaBetween(LocalDate dataInicial, LocalDate dataFinal);
+```
+
+O Spring Data JPA nos permite criar tanto comandos SQL manuais para buscas mais específicas (Via @Query), como também Query Methods, que de forma simplificada, são como uma "forma SQL" que você só precisa especificar o tipo de variável que vai entrar, e o spring consegue interpretar sozinho para fazer a consulta no banco. 
+
+Utilizei dos Query Methods para fazer 2 métodos de consultas relacionadas a uma data ou período específico.
+
+### Service
+
+Seguindo a arquitetura MVC, temos a service para toda lógica de negócio. Pela primeira vez utilizei funções Lambdas para simplificar o código e Stream junto de builders para transformação e criação dos objetos Entidade e EntidadeResponse.
+
+
+**O lançamento das exceções próprias do sistema:**
+
+A maioria das exceções tratadas na classe GlobalExceptionHandler, são exceções disparadas pelo próprio Spring, não temos controle de onde e quando vamos lançá-las, mas aqui, as nossas 2 exceções personalizadas entram em ação:
+
+```
+ DadoInvalidoException("")
+ 
+ NaoEncontradoException("")
+```
+
+Temos controle dessas 2 exceções, podemos decidir quando e em que ocasião ela será lançada, e nesse caso é importante seguindo esses exemplos:
+* O JSON não sabe que o valor de uma despesa não pode ser negativo.
+* Em uma busca por coleção, uma lista vazia é um resultado válido. Mas em uma busca por um recurso específico, um retorno vazio se torna um erro.
+* O filtro da URL não sabe que na busca por período, a data de início precisa ser anterior a data final.
+
+São erros que o JSON não identifica com clareza (ou sequer identifica como erro), ou talvez, não entregue uma mensagem clara, por isso essas exceções personalizadas são úteis. Apontar exatamente o que, e onde falhou. 
+
+### ControleDeGastoApplication
+
+Por fim, a classe que é responsável por fazer a varredura de beans e identificar seus componentes, assim iniciando o sistema corretamente.
