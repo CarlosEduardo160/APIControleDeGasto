@@ -58,12 +58,6 @@ GET /despesas/dia?data=dd/MM/aaaa  -> Busca uma despesa no banco por uma data es
 GET /despesas/periodo?inicio=dd/MM/aaaa&fim=dd/MM/aaaa  -> Busca despesas no banco dentro de um período específico 
 ```
 
-Uma requisição no Postman devera ser assim:
-
-```
-{verbo http} localhost:8080/despesas
-```
-
 Para registrar uma despesa, siga o seguinte modelo JSON:
 
 ```
@@ -85,35 +79,7 @@ O sistema segue uma arquitetura em camadas (Controller -> Service -> Repository)
 
 ### Controller
 
-O Controller é a parte do código que recebe as requisições HTTP, cada método está marcado com seu respectivo verbo, então  por exemplo:
-
-```
-@GetMapping
-    @ResponseStatus(HttpStatus.OK)
-    public List<DespesaResponseDto> listarDespesas()
-```
-
-É um verbo GET, ou seja, responsável apenas pela busca de algum dado. 
-
-Isso é importante porque o que deve definir a ação do código é o verbo HTTP. Por exemplo, um método de listagem não deve conter o endpoint **/listar**, é o verbo que define o que ira acontecer.
-
-Tenha em mente que:
-
-```
- @GetMapping("/dia")
-    @ResponseStatus(HttpStatus.OK)
-    public List<DespesaResponseDto> listarDespesaPorDia(@RequestParam LocalDate data)
-```
-
-Nesse caso é necessário uma rota específica, porque se trata de um filtro, assim como:
-
-```
-@GetMapping("/{id}")
-    @ResponseStatus(HttpStatus.OK)
-    public DespesaResponseDto listarDespesaId(@PathVariable Long id)
-```
-
-É apenas um parâmetro que precisa ser seguido, e não uma rota diferente.
+No Controller esta toda a parte do código que recebe as requisições HTTP, cada método está marcado com seu respectivo verbo HTTP.
 
 ### Domain 
 
@@ -121,7 +87,7 @@ No domain temos nossa "entidade original", é nela que estão os atributos a ser
 
 ### DTO
 
-No pacote DTO temos as classes "DespesaCreateDto" e "DespesaResponseDto", são classes importantíssimas para transportar dados entres as diferentes camadas do sistema, e seguem o modelo da "entidade original".
+No pacote DTO temos as classes "DespesaCreateDto" e "DespesaResponseDto", importantes para transportar dados entres as diferentes camadas do sistema, e seguem o modelo da "entidade original".
 
 O **DespesaCreateDto** é responsável pela criação do objeto, quando fazemos um POST é ele que recebe os dados e transforma em um objeto Despesa.
 
@@ -129,9 +95,7 @@ Possui anotações como:
 * @JsonFormat(pattern = "dd/MM/yyyy") - para indicar a forma que a data deve ser inserida no JSON.
 * NotNull/NotBlank - serve como uma segunda camada de proteção, caso algum dado esteja vazio, ele quebra e da erro antes de percorrer todo o caminho até o banco de dados.
 
-Já o **DespesaResponseDto** é importantíssimo, pois é ele que define que dados iremos exibir para o usuário. No caso desse código, não teria problema retornar diretamente a entidade, porquê não temos nenhum dado sensível.
-
-Mas no caso de sistemas que possuem dados como: email e senha, se não tiver um response para ocultar essas informações teríamos um problema gravíssimo de segurança.
+Já o **DespesaResponseDto** é a entidade que retornamos para o usuário.
 
 O DespesaResponse possui as anotações:
 * @JsonInclude(JsonInclude.Include.NON_NULL) - Para não exibir o campo "descrição" no corpo do JSON caso o campo esteja vazio, já que descrição não é um campo obrigatório.
@@ -139,18 +103,18 @@ O DespesaResponse possui as anotações:
 
 ### Exception e ExceptionHandler
 
-No pacote "exception" temos 2 exceções personalizadas e um ErrorResponse que funciona basicamente como um ResponseDto. Quando ocorre um erro no sistema, o JSON retorna um erro extremamente verboso e ilegível para iniciantes ou pessoas de fora da área, então o trabalho do ErrorResponse é tornar essa mensagem "amigável". 
+No pacote "exception" temos 2 exceções personalizadas e um ErrorResponse que funciona basicamente como um ResponseDto. O trabalho do response é tornar o erro retornado pelo JSON em algo mais "amigável" e legível. 
 
 
 Já no pacote "handler" temos o **GlobalExceptionHandler** que é o responsável por lidar com essa "transformação" da mensagem de erro. 
 
-Tentei mapear o maior numero de erros possíveis, e deixei anotado em cima de cada método em qual ocasião aquela exceção seria lançada. Recomendo uma rápida checagem, pois se eu tentasse explicar cada um aqui essa seção se estenderia demais (Na seção "Service" explicarei brevemente a decisão sobre as 2 exceções personalizadas do sistema).
+Tentei mapear o maior numero de erros possíveis, e deixei anotado em cima de cada método em qual ocasião aquela exceção seria lançada. Recomendo uma rápida checagem para saber os tipos de exceções que estão sendo tratadas.
 
 ### Repository
 
-Aqui temos uma interface IDespesaRepository que estende "JpaRepository", usando da especificação JPA e do Hibernate para aplicar a persistência de dados. Isso nos livra de ter que ficar escrevendo comando SQL manual, a interface já possui métodos prontos e semânticos para cada operação.
+Aqui temos a interface IDespesaRepository que estende "JpaRepository", usando da especificação JPA e do Hibernate para aplicar a persistência de dados. Isso nos livra de ter que ficar escrevendo comando SQL manual, a interface já possui métodos prontos e semânticos para cada operação.
 
-Ainda assim, temos o uso de "Query Methods" para fazer buscas "personalizadas", nesse código temos:
+Utilizei dos Query Methods para fazer 2 métodos de consultas relacionadas a uma data ou período específico:
 
 ```
  List<Despesa> findDespesaByDataDespesa(LocalDate dataDespesa);
@@ -158,13 +122,9 @@ Ainda assim, temos o uso de "Query Methods" para fazer buscas "personalizadas", 
  List<Despesa> findByDataDespesaBetween(LocalDate dataInicial, LocalDate dataFinal);
 ```
 
-O Spring Data JPA nos permite criar tanto comandos SQL manuais para buscas mais específicas (Via @Query), como também Query Methods, que de forma simplificada, são como uma "forma SQL" que você só precisa especificar o tipo de variável que vai entrar, e o spring consegue interpretar sozinho para fazer a consulta no banco. 
-
-Utilizei dos Query Methods para fazer 2 métodos de consultas relacionadas a uma data ou período específico.
-
 ### Service
 
-Seguindo a arquitetura MVC, temos a service para toda lógica de negócio. Pela primeira vez utilizei funções Lambdas para simplificar o código e Stream junto de builders para transformação e criação dos objetos Entidade e EntidadeResponse.
+Seguindo a arquitetura, temos a service para toda lógica de negócio. Pela primeira vez utilizei funções Lambdas para simplificar o código e Stream junto de builders para transformação e criação dos objetos Entidade e EntidadeResponse.
 
 
 **O lançamento das exceções próprias do sistema:**
@@ -177,12 +137,12 @@ A maioria das exceções tratadas na classe GlobalExceptionHandler, são exceç�
  NaoEncontradoException("")
 ```
 
-Temos controle dessas 2 exceções, podemos decidir quando e em que ocasião ela será lançada, e nesse caso é importante seguindo esses exemplos:
+Elas são aplicadas em situações em que o JSON não identifica o erro com clareza (ou sequer identifica como erro), ou não sabe uma lógica sobre o dado inserido, por exemplo:
 * O JSON não sabe que o valor de uma despesa não pode ser negativo.
 * Em uma busca por coleção, uma lista vazia é um resultado válido. Mas em uma busca por um recurso específico, um retorno vazio se torna um erro.
 * O filtro da URL não sabe que na busca por período, a data de início precisa ser anterior a data final.
 
-São erros que o JSON não identifica com clareza (ou sequer identifica como erro), ou talvez, não entregue uma mensagem clara, por isso essas exceções personalizadas são úteis. Apontar exatamente o que, e onde falhou. 
+Nesses cenários as 2 exceções personalizadas são úteis, apontando exatamente o que, e onde falhou. 
 
 ### ControleDeGastoApplication
 
