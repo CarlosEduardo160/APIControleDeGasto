@@ -112,9 +112,7 @@ Tentei mapear o maior numero de erros possíveis, e deixei anotado em cima de ca
 
 ### Repository
 
-Aqui temos a interface IDespesaRepository que estende "JpaRepository", usando da especificação JPA e do Hibernate para aplicar a persistência de dados. Isso nos livra de ter que ficar escrevendo comando SQL manual, a interface já possui métodos prontos e semânticos para cada operação.
-
-Utilizei dos Query Methods para fazer 2 métodos de consultas relacionadas a uma data ou período específico:
+Aqui temos a interface IDespesaRepository que estende "JpaRepository", usando da especificação JPA e do Hibernate para aplicar a persistência de dados. Utilizei dos Query Methods para fazer 2 métodos de consultas relacionadas a uma data ou período específico:
 
 ```
  List<Despesa> findDespesaByDataDespesa(LocalDate dataDespesa);
