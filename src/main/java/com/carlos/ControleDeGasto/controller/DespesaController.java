@@ -5,6 +5,9 @@ import com.carlos.ControleDeGasto.dto.DespesaResponseDto;
 import com.carlos.ControleDeGasto.service.DespesaService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,8 +23,8 @@ public class DespesaController {
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public List<DespesaResponseDto> listarDespesas() {
-        return despesaService.listarDespesas();
+    public Page<DespesaResponseDto> listarDespesas(@PageableDefault(size = 5) Pageable pageable) {
+        return despesaService.listarDespesas(pageable);
     }
 
     @GetMapping("/{id}")

@@ -7,6 +7,8 @@ import com.carlos.ControleDeGasto.exception.DadoInvalidoException;
 import com.carlos.ControleDeGasto.exception.NaoEncontradoException;
 import com.carlos.ControleDeGasto.repository.IDespesaRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -34,17 +36,15 @@ public class DespesaService {
         despesaRepository.save(despesa);
     }
 
-    public List<DespesaResponseDto> listarDespesas(){
-        return despesaRepository.findAll()
-                .stream()
+    public Page<DespesaResponseDto> listarDespesas(Pageable pageable){
+        return despesaRepository.findAll(pageable)
                 .map(despesa -> DespesaResponseDto.builder()
                         .id(despesa.getId())
                         .dataDespesa(despesa.getDataDespesa())
                         .titulo(despesa.getTitulo())
                         .valor(despesa.getValor())
                         .descricao(despesa.getDescricao())
-                        .build())
-                .collect(Collectors.toList());
+                        .build());
     }
 
     public DespesaResponseDto buscarDespesaId(Long id){
