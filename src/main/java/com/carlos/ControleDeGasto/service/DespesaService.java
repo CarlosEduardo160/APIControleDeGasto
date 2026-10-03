@@ -66,6 +66,11 @@ public class DespesaService {
                     despesaExistente.setDataDespesa(novosDados.getDataDespesa());
                     despesaExistente.setTitulo(novosDados.getTitulo());
                     despesaExistente.setValor(novosDados.getValor());
+
+                    if (despesaExistente.getValor().compareTo(BigDecimal.ZERO) < 0){
+                        throw new DadoInvalidoException("O valor da despesa não pode ser negativo.");
+                    }
+
                     despesaExistente.setDescricao(novosDados.getDescricao());
                     return despesaRepository.save(despesaExistente);
                 })
