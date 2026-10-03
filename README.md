@@ -38,12 +38,21 @@ Para testar essa API utilize o Postman, clone o repositório e inicie o código,
 localhost:8080
 ```
 
+### Swagger
+
+Caso deseje visualizar a documentação da API no formato Swagger/OpenAPI, inicie o código e entre no seguindo endereço pelo seu navegador:
+
+```
+http://localhost:8080/swagger-ui/index.html
+```
+
 ### Endpoints
 
 A API possui os seguintes endpoints:
 
 ```
 GET /despesas  -> Busca todas as despesas que estiverem no banco
+ -Para paginação, faça: /despesas?{página}&{numero de itens por página} caso queira alterar a exibição (Obs: a página inicial é a pagina 0)
 
 GET /despesas/{id}  -> Busca uma despesas especifica pelo ID
 
