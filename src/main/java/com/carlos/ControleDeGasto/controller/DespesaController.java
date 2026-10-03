@@ -30,7 +30,7 @@ public class DespesaController {
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    @Operation(summary = "Listar todas as despesas", description = "Método que retorna todas as despesas no banco de dados de forma páginada")
+    @Operation(summary = "Listar todas as despesas", description = "Método que retorna todas as despesas cadastradas de forma paginada")
     public PagedModel<DespesaResponseDto> listarDespesas(@ParameterObject @PageableDefault(size = 5) Pageable pageable) {
         Page<DespesaResponseDto> pagina = despesaService.listarDespesas(pageable);
         return new PagedModel<>(pagina);
@@ -38,9 +38,9 @@ public class DespesaController {
 
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    @Operation(summary = "Lista despesa por ID", description = "Método que retorna uma despesa específica do banco de dados")
+    @Operation(summary = "Buscar despesa por ID", description = "Método que retorna uma despesa específica pelo seu ID")
     @ApiResponse(responseCode = "404", description = "Despesa não encontrada")
-    public DespesaResponseDto listarDespesaId(@PathVariable Long id) {
+    public DespesaResponseDto buscarDespesaId(@PathVariable Long id) {
         return despesaService.buscarDespesaId(id);
     }
 
@@ -54,7 +54,7 @@ public class DespesaController {
 
     @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    @Operation(summary = "Alterar despesa", description = "Método que atualiza (por inteiro) uma despesa no banco de dados")
+    @Operation(summary = "Alterar despesa", description = "Método que atualiza (por inteiro) uma despesa já registrada")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "404", description = "Despesa não encontrada"),
             @ApiResponse(responseCode = "400", description = "Valor da despesa é inválido")
@@ -80,7 +80,7 @@ public class DespesaController {
 
     @GetMapping("/periodo")
     @ResponseStatus(HttpStatus.OK)
-    @Operation(summary = "Listar despesas por período", description = "Método que retorna despesas regstradas em um período específico")
+    @Operation(summary = "Listar despesas por período", description = "Método que retorna despesas registradas em um período específico")
     @ApiResponse(responseCode = "400", description = "A data inicial não pode ultrapassar a data final")
     public List<DespesaResponseDto> listarDespesaPorPeriodo(@RequestParam LocalDate inicio, @RequestParam LocalDate fim) {
         return despesaService.listarDespesaPorPeriodo(inicio, fim);
