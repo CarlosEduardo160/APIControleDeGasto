@@ -58,9 +58,9 @@ class DespesaServiceTest {
     @Test
     void deveLancarExcecaoAoInserirValorDaDespesaMenorQueZero(){
         DespesaCreateDto despesaCreateDto = new DespesaCreateDto(LocalDate.of(2026, 10, 14),
-                "Teste exceção",
+                "Teste lançamento exceção - registrar/Valor invalido",
                 new BigDecimal(-2),
-                "Teste de lançamento de exceção");
+                "Testa exceção por valor invalido no método registrarDespesa");
 
         assertThrows(DadoInvalidoException.class, () -> despesaService.registrarDespesa(despesaCreateDto));
 
@@ -151,16 +151,16 @@ class DespesaServiceTest {
     void deveAtualizarDespesaPorId() {
         Despesa despesa = new Despesa(3L,
                 LocalDate.of(2026, 10, 7),
-                "Teste antes de atualizar",
+                "Teste antes de atualizar despesa por ID",
                 new BigDecimal(150),
-                "Teste do método antes de atualizar despesa");
+                "Teste do método antes de atualizar despesa por ID");
         when(iDespesaRepository.findById(3L)).thenReturn(Optional.of(despesa));
 
         DespesaCreateDto novosDados = new DespesaCreateDto(
                 LocalDate.of(2026, 10, 9),
-                "Teste após atualizar",
+                "Teste após atualizar despesa por ID",
                 new BigDecimal(10),
-                "Teste do método após atualizar despesa"
+                "Teste do método após atualizar despesa por ID"
         );
 
         when(iDespesaRepository.save(any(Despesa.class))).thenReturn(despesa);
@@ -170,9 +170,9 @@ class DespesaServiceTest {
 
         assertEquals(3L, despesaCaptor.getValue().getId());
         assertEquals(LocalDate.of(2026, 10, 9), despesaCaptor.getValue().getDataDespesa());
-        assertEquals("Teste após atualizar", despesaCaptor.getValue().getTitulo());
+        assertEquals("Teste após atualizar despesa por ID", despesaCaptor.getValue().getTitulo());
         assertEquals(new BigDecimal(10), despesaCaptor.getValue().getValor());
-        assertEquals("Teste do método após atualizar despesa", despesaCaptor.getValue().getDescricao());
+        assertEquals("Teste do método após atualizar despesa por ID", despesaCaptor.getValue().getDescricao());
     }
 
     @Test
@@ -195,7 +195,7 @@ class DespesaServiceTest {
     void deveLancarExcecaoAoTentarAtualizarDespesaComValorInvalido(){
         Despesa despesa = new Despesa(1L,
                 LocalDate.of(2026, 10, 14),
-                "Teste antes de atualizar",
+                "Teste de exceção antes de atualizar despesa",
                 new BigDecimal(150),
                 "Teste do método antes de atualizar despesa");
         when(iDespesaRepository.findById(1L)).thenReturn(Optional.of(despesa));
@@ -218,9 +218,9 @@ class DespesaServiceTest {
     void deveTestarAVariavelDeTempo(){
         Despesa despesa1 = new Despesa(1L,
                 LocalDate.of(2026, 10, 12),
-                "Teste data",
+                "Teste data 1",
                 new BigDecimal(50),
-                "Teste filtro data");
+                "Teste filtro data 1");
 
         Despesa despesa2 = new Despesa(2L,
                 LocalDate.of(2026, 10, 12),
@@ -238,9 +238,9 @@ class DespesaServiceTest {
 
         assertEquals(1L, resultados.get(0).getId());
         assertEquals(LocalDate.of(2026, 10, 12), resultados.get(0).getDataDespesa());
-        assertEquals("Teste data", resultados.get(0).getTitulo());
+        assertEquals("Teste data 1", resultados.get(0).getTitulo());
         assertEquals(new BigDecimal(50), resultados.get(0).getValor());
-        assertEquals("Teste filtro data", resultados.get(0).getDescricao());
+        assertEquals("Teste filtro data 1", resultados.get(0).getDescricao());
 
         assertEquals(2L, resultados.get(1).getId());
         assertEquals(LocalDate.of(2026, 10, 12), resultados.get(1).getDataDespesa());
@@ -254,9 +254,9 @@ class DespesaServiceTest {
     void deveTestarVariaveisDeTempoParaOFiltro(){
         Despesa despesa1 = new Despesa(1L,
                 LocalDate.of(2026, 10, 13),
-                "Teste periodo",
+                "Teste periodo 1",
                 new BigDecimal(40),
-                "Teste filtro periodo");
+                "Teste filtro periodo 1");
 
         Despesa despesa2 = new Despesa(2L,
                 LocalDate.of(2026, 10, 15),
@@ -275,9 +275,9 @@ class DespesaServiceTest {
 
         assertEquals(1L, resultados.get(0).getId());
         assertEquals(LocalDate.of(2026, 10, 13), resultados.get(0).getDataDespesa());
-        assertEquals("Teste periodo", resultados.get(0).getTitulo());
+        assertEquals("Teste periodo 1", resultados.get(0).getTitulo());
         assertEquals(new BigDecimal(40), resultados.get(0).getValor());
-        assertEquals("Teste filtro periodo", resultados.get(0).getDescricao());
+        assertEquals("Teste filtro periodo 1", resultados.get(0).getDescricao());
 
         assertEquals(2L, resultados.get(1).getId());
         assertEquals(LocalDate.of(2026, 10, 15), resultados.get(1).getDataDespesa());
