@@ -3,6 +3,8 @@ package com.carlos.ControleDeGasto.service;
 import com.carlos.ControleDeGasto.domain.Despesa;
 import com.carlos.ControleDeGasto.dto.DespesaCreateDto;
 import com.carlos.ControleDeGasto.dto.DespesaResponseDto;
+import com.carlos.ControleDeGasto.exception.DadoInvalidoException;
+import com.carlos.ControleDeGasto.exception.NaoEncontradoException;
 import com.carlos.ControleDeGasto.repository.IDespesaRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -22,8 +24,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class DespesaServiceTest {
@@ -52,6 +53,18 @@ class DespesaServiceTest {
         assertEquals("Teste", despesaCaptor.getValue().getTitulo());
         assertEquals(new BigDecimal(5), despesaCaptor.getValue().getValor());
         assertEquals("descrição para teste", despesaCaptor.getValue().getDescricao());
+    }
+
+    @Test
+    void deveLancarExcecaoAoInserirValorDaDespesaMenorQueZero(){
+        DespesaCreateDto despesaCreateDto = new DespesaCreateDto(LocalDate.of(2026, 10, 14),
+                "Teste exceção",
+                new BigDecimal(-2),
+                "Teste de lançamento de exceção");
+
+        assertThrows(DadoInvalidoException.class, () -> despesaService.registrarDespesa(despesaCreateDto));
+
+        verify(iDespesaRepository, never()).save(any(Despesa.class));
     }
 
     @Test
@@ -110,12 +123,28 @@ class DespesaServiceTest {
     }
 
     @Test
+    void deveLancarExcecaoAoTentarBuscarDespesaComIdInexistente(){
+        when(iDespesaRepository.findById(1L)).thenReturn(Optional.empty());
+
+        assertThrows(NaoEncontradoException.class, () -> despesaService.buscarDespesaId(1L));
+    }
+
+    @Test
     void deveExcluirDespesaPorId(){
         when(iDespesaRepository.existsById(2L)).thenReturn(true);
 
         despesaService.excluirDespesa(2L);
 
         verify(iDespesaRepository).deleteById(2L);
+    }
+
+    @Test
+    void deveLancarExcecaoAoTentarExcluirComIdInexistente(){
+        when(iDespesaRepository.existsById(1L)).thenReturn(false);
+
+        assertThrows(NaoEncontradoException.class, () -> despesaService.excluirDespesa(1L));
+
+        verify(iDespesaRepository, never()).deleteById(1L);
     }
 
     @Test
@@ -144,6 +173,43 @@ class DespesaServiceTest {
         assertEquals("Teste após atualizar", despesaCaptor.getValue().getTitulo());
         assertEquals(new BigDecimal(10), despesaCaptor.getValue().getValor());
         assertEquals("Teste do método após atualizar despesa", despesaCaptor.getValue().getDescricao());
+    }
+
+    @Test
+    void deveLancarExcecaoAoTentarAtualizarDespesaComIdInexistente(){
+        DespesaCreateDto novosDados = new DespesaCreateDto(
+                LocalDate.of(2026, 10, 9),
+                "Teste lançamento exceção - atualizar/ID inexistente",
+                new BigDecimal(10),
+                "Testa exceção por ID inexistente no método atualizarDespesa"
+        );
+
+        when(iDespesaRepository.findById(1L)).thenReturn(Optional.empty());
+
+        assertThrows(NaoEncontradoException.class, () -> despesaService.atualizarDespesa(1L, novosDados));
+
+        verify(iDespesaRepository, never()).save(despesaCaptor.capture());
+    }
+
+    @Test
+    void deveLancarExcecaoAoTentarAtualizarDespesaComValorInvalido(){
+        Despesa despesa = new Despesa(1L,
+                LocalDate.of(2026, 10, 14),
+                "Teste antes de atualizar",
+                new BigDecimal(150),
+                "Teste do método antes de atualizar despesa");
+        when(iDespesaRepository.findById(1L)).thenReturn(Optional.of(despesa));
+
+        DespesaCreateDto novosDados = new DespesaCreateDto(
+                LocalDate.of(2026, 10, 9),
+                "Teste lançamento exceção - atualizar/Valor inválido",
+                new BigDecimal(-10),
+                "Testa exceção por valor inválido no método atualizarDespesa"
+        );
+
+        assertThrows(DadoInvalidoException.class, () -> despesaService.atualizarDespesa(1L, novosDados));
+
+        verify(iDespesaRepository, never()).save(any(Despesa.class));
     }
 
 
@@ -218,5 +284,13 @@ class DespesaServiceTest {
         assertEquals("Teste periodo 2", resultados.get(1).getTitulo());
         assertEquals(new BigDecimal(34), resultados.get(1).getValor());
         assertEquals("Teste filtro periodo 2", resultados.get(1).getDescricao());
+    }
+
+    @Test
+    void deveLancarExcecaoQuandoDataInicialUltrapassaDataFinal(){
+        LocalDate inicio = LocalDate.of(2026, 10, 31);
+        LocalDate fim = LocalDate.of(2026, 10, 1);
+
+        assertThrows(DadoInvalidoException.class, () -> despesaService.listarDespesaPorPeriodo(inicio, fim));
     }
 }
